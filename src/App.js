@@ -1,27 +1,25 @@
 import React from 'react';
-import { BrowserRouter as Rou, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Home from './Pages/Home';
 import NavFooter from './Pages/NavFooter';
 import ChessGame from './Pages/ChessGame';
+import ContactUs from './Pages/ContactUs';
+import UserProfile from './Pages/UserProfile';
 
 function App() {
   return (
-    <div className="App">
-  
-      <Rou>
-       
+      <Router>
         <Routes>
-          <Route element={<NavFooter />} >
-<Route path='/' element={<Home />} />
-<Route path='/chess' element={<ChessGame />} />
+          <Route element={<NavFooter />}>
+            <Route path="/" element={<Home />} />
+            <Route path="/chess" element={<ChessGame />} />
+            <Route path="/contactus" element={<ContactUs />} />
+            <Route path="/profile" element={<UserProfile />} />
           </Route>
-         
         </Routes>
-      </Rou>
-     
-    </div>
+      </Router>
+      
   );
 }
 
 export default App;
-
