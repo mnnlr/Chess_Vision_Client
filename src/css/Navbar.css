@@ -6,6 +6,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
+    background-color: green;
     padding: 1rem 2rem;
     transition: background-color 0.3s ease;
     z-index: 1000;
