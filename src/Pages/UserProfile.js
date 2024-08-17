@@ -4,7 +4,7 @@ import FriendsList from "../components/FriendsList";
 
 const UserProfile = () => {
   return (
-    <div className="flex flex-col lg:flex-row justify-center gap-6 p-4 mt-10">
+    <div className="flex flex-col lg:flex-row justify-center gap-6 p-4">
       {/* Main Profile Card */}
       <div className="bg-customTeal text-white p-6 rounded-xl shadow-lg w-full lg:w-2/3">
         {/* User Info */}
@@ -69,8 +69,8 @@ const UserProfile = () => {
           </div>
         </div>
       </div>
-    <FriendsList/>
-     
+      <FriendsList />
+
     </div>
   );
 };

@@ -6,7 +6,7 @@ import ContactUsForm from "../components/ContactUsForm";
 const ContactUs = () => {
   return (
     <>
-      <section className="relative bg-gray-800 text-white text-center py-10 md:py-20 mt-12 min-h-96 flex items-center justify-center">
+      <section className="relative bg-gray-800 text-white text-center py-10 md:py-20 min-h-96 flex items-center justify-center">
         <img
           src={img}
           alt="Chess background"
@@ -16,7 +16,7 @@ const ContactUs = () => {
           Contact
         </h2>
       </section>
-      <ContactUsForm/>
+      <ContactUsForm />
     </>
   );
 };

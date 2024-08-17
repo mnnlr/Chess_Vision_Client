@@ -5,20 +5,21 @@ import NavFooter from './Pages/NavFooter';
 import ChessGame from './Pages/ChessGame';
 import ContactUs from './Pages/ContactUs';
 import UserProfile from './Pages/UserProfile';
+import { Signin } from './Pages/Signin';
 
 function App() {
   return (
-      <Router>
-        <Routes>
-          <Route element={<NavFooter />}>
-            <Route path="/" element={<Home />} />
-            <Route path="/chess" element={<ChessGame />} />
-            <Route path="/contactus" element={<ContactUs />} />
-            <Route path="/profile" element={<UserProfile />} />
-          </Route>
-        </Routes>
-      </Router>
-      
+    <Router>
+      <Routes>
+        <Route element={<NavFooter />}>
+          <Route path="/" element={<Home />} />
+          <Route path="/chess" element={<ChessGame />} />
+          <Route path="/contactus" element={<ContactUs />} />
+          <Route path="/profile" element={<UserProfile />} />
+          <Route path="/signin" element={<Signin />} />
+        </Route>
+      </Routes>
+    </Router>
   );
 }
 
