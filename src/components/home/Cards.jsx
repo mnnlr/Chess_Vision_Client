@@ -23,7 +23,7 @@ function Cards() {
                 {/* Card 2 */}
                 <div class="flex flex-col rounded-2xl w-56 bg-[#ffffff] shadow-xl">
                     <figure class="flex justify-center items-center rounded-2xl">
-                        <img src={chess}  alt="Card Preview" class="rounded-t-2xl object-contain h-48 w-96" />
+                        <img src={chess} alt="Card Preview" class="rounded-t-2xl object-contain h-48 w-96" />
                     </figure>
                     <div class="flex flex-col p-8">
                         <div class="text-2xl font-bold   text-[#374151] pb-6">Generator</div>

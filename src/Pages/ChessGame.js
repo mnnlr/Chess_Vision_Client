@@ -13,28 +13,28 @@ const ChessGame = () => {
     modify(game);
     setGame(new Chess(game.fen())); // Set the game state to a new instance with the updated position
   };
-  
 
-  
+
+
   // Movement of computer
-const makeRandomMove = () => {
-  const possibleMoves = game.moves();
-  // exit if the game is over
- 
-  if(game.isGameOver() || game.isDraw() || possibleMoves.length === 0)
-    return;
-  const randomIndex = Math.floor(Math.random() * possibleMoves.length);
-  // play random move
-  safeGameMutate((game)=>{
-    game.move(possibleMoves[randomIndex])
-  })
+  const makeRandomMove = () => {
+    const possibleMoves = game.moves();
+    // exit if the game is over
+
+    if (game.isGameOver() || game.isDraw() || possibleMoves.length === 0)
+      return;
+    const randomIndex = Math.floor(Math.random() * possibleMoves.length);
+    // play random move
+    safeGameMutate((game) => {
+      game.move(possibleMoves[randomIndex])
+    })
   }
 
   // Perform an action when a piece is droped by a user
 
   const handleMove = (sourceSquare, targetSquare) => {
     let moveOne = null;
-    safeGameMutate(()=>{
+    safeGameMutate(() => {
 
       moveOne = game.move({
         from: sourceSquare,
@@ -46,7 +46,7 @@ const makeRandomMove = () => {
     // illegal move
     if (moveOne === null) return false;
     // setPosition(game.fen());
-    
+
     // Check if the game is in check or checkmate
     if (game.isCheckmate()) {
       setNotification("Checkmate! Game over.");
@@ -57,7 +57,7 @@ const makeRandomMove = () => {
     } else {
       setNotification(""); // Clear notification if there's no special condition
     }
-    
+
     // valid move
     setTimeout(makeRandomMove, 200);
     return true;
@@ -106,7 +106,7 @@ const makeRandomMove = () => {
           alignItems: "center",
         }}
       >
-        <Chessboard  position={game.fen()} onPieceDrop={handleMove}/>
+        <Chessboard position={game.fen()} onPieceDrop={handleMove} />
       </div>
       <div
         style={{

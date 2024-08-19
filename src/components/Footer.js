@@ -7,7 +7,7 @@ function Footer() {
       <div className="container px-3 py-7 mx-auto flex flex-wrap flex-col md:flex-row items-center justify-between">
         <div className="w-64 flex-shrink-0 mx-auto text-center md:text-center">
           <a className="flex title-font font-medium items-center justify-center text-gray-900">
-            <img src="" alt="logo" className='w-10 h-10 text-white p-2 rounded-full' />
+            {/* <img src="" alt="logo" className='w-10 h-10 text-white p-2 rounded-full' /> */}
             <span className="ml-3 text-3xl">Chess Vision</span>
           </a>
           <p className="mt-2 text-sm text-gray-800">Air plant banjo lyft occupy retro adaptogen indego</p>
