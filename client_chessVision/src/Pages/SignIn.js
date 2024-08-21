@@ -1,6 +1,9 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useDispatch, useSelector} from 'react-redux'
 import image from "../images/5a353d1cc50827.4970413315134384928071.png";
-import axios from "axios";
+import {login }from "../state/actions/LoginActions";
+
 
 const SignIn = () => {
   const [formData, setFormData] = useState({
@@ -8,6 +11,12 @@ const SignIn = () => {
     password: "",
   });
 
+
+
+
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const { user, error: loginError } = useSelector((state) => state.login);
   const handleChange = (e) => {
     setFormData({
       ...formData,
@@ -15,15 +24,49 @@ const SignIn = () => {
     });
   };
 
-  const handleSubmit = async () => {
-    try{
-        const {data, status} = await axios.post('http://localhost:5000/signin', formData)
-        console.log(data);
-    }catch(error){
 
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if(formData?.email === '' || formData?.password === ''){
+      alert('Please fill all the fields');
+      return;
     }
-    
+    dispatch(login( {formData }));
+
+
+    // try {
+    //   // Replace formData with your state or form values
+    //   const { data, status } = await axios.post(
+    //     "http://localhost:5000/signin",
+    //     formData
+    //   );
+
+    //   if (status === 200) {
+    //     // Check if the request was successful
+    //     console.log("Login successful:", data);
+
+    //     // Save the token in localStorage or sessionStorage
+    //     localStorage.setItem("token", data.token);
+
+    //     // Redirect the user to the dashboard or another protected route
+    //     navigate("/"); // Assuming you have a dashboard route set up
+    //   }
+    // } catch (error) {
+    //   console.error("Login failed:", error.response?.data || error.message);
+    //   // Handle the error (e.g., display a message to the user)
+    // }
   };
+
+  useEffect(() => {
+    if (user?.id) {
+      navigate('/'); // Redirect to home page if user is logged in
+    }
+    if (loginError) {
+      alert(loginError); // Show error if login fails
+    }
+  }, [user, loginError, navigate]);
+
 
   return (
     <>

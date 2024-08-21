@@ -42,7 +42,10 @@ const makeRandomMove = () => {
     });
 
     // illegal move
-    if (moveOne === null) return false;
+    if (moveOne === null) {
+      setNotification('Invalid Move Please try again');
+      return false;
+    };
     // setPosition(game.fen());
     
     // Check if the game is in check or checkmate
@@ -62,61 +65,19 @@ const makeRandomMove = () => {
   };
 
   return (
-    <div
-      style={{
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        height: "100vh",
-        marginTop: "100px",
-      }}
-    >
-      <div
-        style={{
-          width: "20%",
-          height: "100vh",
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          backgroundColor: "lightgreen",
-        }}
-      >
-        {notification && (
-          <div
-            style={{
-              padding: "10px",
-              backgroundColor: "red",
-              color: "white",
-              borderRadius: "5px",
-              textAlign: "center",
-            }}
-          >
-            {notification}
-          </div>
-        )}
-      </div>
-      <div
-        style={{
-          width: "40%",
-          height: "100vh",
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-        }}
-      >
-        <Chessboard  position={game.fen()} onPieceDrop={handleMove}/>
-      </div>
-      <div
-        style={{
-          width: "20%",
-          height: "100vh",
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          backgroundColor: "lightgreen",
-        }}
-      ></div>
+    <div className="flex justify-center items-center h-screen bg-gray-100">
+    <div className="w-1/5 h-full flex justify-center items-center bg-lightgreen">
+      {notification && (
+        <div className="p-2 bg-red-500 text-white rounded text-center">
+          {notification}
+        </div>
+      )}
     </div>
+    <div className="w-2/5 h-full flex justify-center items-center">
+      <Chessboard position={game.fen()} onPieceDrop={handleMove} boardWidth={500} />
+    </div>
+    <div className="w-1/5 h-full flex justify-center items-center bg-lightgreen"></div>
+  </div>
   );
 };
 
