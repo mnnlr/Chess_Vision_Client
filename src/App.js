@@ -7,6 +7,7 @@ import ContactUs from './Pages/ContactUs';
 import UserProfile from './Pages/UserProfile';
 import { Signin } from './Pages/Signin';
 import { AboutUs } from './Pages/AboutUs';
+import DragAndDrop from './components/home/DragAndDrop';
 
 function App() {
   return (
@@ -19,6 +20,7 @@ function App() {
           <Route path="/profile" element={<UserProfile />} />
           <Route path="/about-us" element={<AboutUs />} />
           <Route path="/signin" element={<Signin />} />
+          <Route path='/drag&drop' element={<DragAndDrop/>}/>
         </Route>
       </Routes>
     </Router>

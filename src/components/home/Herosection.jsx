@@ -1,6 +1,14 @@
 import React from 'react';
 import chess from '../../images/13a901e00ffdb94e890598460f73116d.png'
+import { BrowserRouter as Router, Route, Routes, useNavigate } from 'react-router-dom';
 const HeroSection = () => {
+
+  const navigate = useNavigate();
+
+  const handleBtnClick = () => {
+    navigate('/drag&drop');
+  };
+
   return (
     <div className="leading-normal tracking-normal text-white "  style={{ 
         background: 'linear-gradient(90deg, #33b01a 0%, #32c283 100%)',
@@ -19,9 +27,14 @@ const HeroSection = () => {
             <p className="leading-normal text-2xl mb-8">
               Sub-hero message, not too long and not too short. Make it just right!
             </p>
-            <button className="mx-auto lg:mx-0 hover:underline bg-white text-gray-800 font-bold rounded-full mt-4 lg:mt-0 py-4 px-8 shadow opacity-75 hover:opacity-90 focus:outline-none focus:shadow-outline transform transition hover:scale-105 duration-300 ease-in-out">
+            <div class="flex space-x-4 ...">
+            <button onClick={handleBtnClick} className="mx-auto lg:mx-0 hover:underline bg-white text-gray-800 font-bold rounded-full mt-4 lg:mt-0 py-4 px-8 shadow opacity-75 hover:opacity-90 focus:outline-none focus:shadow-outline transform transition hover:scale-105 duration-300 ease-in-out">
               Play Now
             </button>
+            {/* <button onClick={handleBtnClick} className="mx-auto lg:mx-0 hover:underline bg-white text-gray-800 font-bold rounded-full mt-4 lg:mt-0 py-4 px-8 shadow opacity-75 hover:opacity-90 focus:outline-none focus:shadow-outline transform transition hover:scale-105 duration-300 ease-in-out">
+              Scan and play
+            </button> */}
+            </div>
           </div>
           {/* Right Col */}
           <div className="w-full md:w-3/5 py-6 text-center">
