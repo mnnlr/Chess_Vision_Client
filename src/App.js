@@ -18,11 +18,13 @@ function App() {
         <Route element={<NavFooter />}>
           <Route path="/" element={<Home />} />
           <Route path="/chess" element={<ChessGame />} />
-          <Route path="/contactus" element={<ContactUs />} />
+          <Route path="/chess-game" element={<Chessq />} />
+          <Route path="/chess-analysis" element={<ChessAnalysis />} /> 
+          <Route path='/contact-us' element={<ContactUs/>}/>
           <Route path="/profile" element={<UserProfile />} />
           <Route path="/about-us" element={<AboutUs />} />
-          <Route path="/signin" element={<Signin />} />
           <Route path='/drag&drop' element={<DragAndDrop/>}/>
+          <Route path="/signin" element={<Signin />} />
         </Route>
       </Routes>
     </Router>
