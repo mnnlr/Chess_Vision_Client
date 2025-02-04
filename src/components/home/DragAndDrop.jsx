@@ -1,17 +1,21 @@
 import React, { useState, useRef, useCallback } from "react";
 import Cropper from "react-easy-crop";
 import getCroppedImg from "../../utils/getCroppedImg";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 
 const DragAndDrop = () => {
   const [file, setFile] = useState(null);
   const fileInputRef = useRef(null);
   const [image, setImage] = useState(null);
   const [isImageDropped, setIsImageDropped] = useState(false); // Track if image is dropped
-  const [croppedImage, setCroppedImage] = useState(null); // Cropped image
+  const [croppedImage, setCroppedImage] = useState(); // Cropped image
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
   const [isCropped, setIsCropped] = useState(false);
+  const navigate = useNavigate();
 
   const onCropComplete = useCallback((croppedArea, croppedAreaPixels) => {
     setCroppedAreaPixels(croppedAreaPixels);
@@ -55,11 +59,39 @@ const DragAndDrop = () => {
     }
   }, [image, croppedAreaPixels]);
 
-  const handleUpload = () => {
-    if (file) {
-      alert(`Uploading: ${file}`);
-    } else {
-      alert("No file selected.");
+  //handel Upload
+  const handleUpload = async () => {
+    if (!croppedImage) {
+      toast.warning("Please drag the image again!");
+      return;
+    }
+    try {
+      const blob = await fetch(croppedImage).then((res) => res.blob());
+      const file = new File([blob], "cropped-image.jpg", { type: "image/jpg" });
+
+      const fromData = new FormData();
+      fromData.append("croppedImage", file);
+
+      const response = await axios.post(
+        "http://localhost:5000/api/images/upload",
+        fromData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+      console.log("Uploaded Image:", response.data);
+      setCroppedImage(
+        `http:/localhost:5000/api/images/${response.data.filename}`
+      );
+      toast.success("Image uploaded successfully!");
+      navigate("/chess");
+    } catch (error) {
+      console.error(
+        "Error uploading image",
+        error.response?.data || error.message
+      );
     }
   };
 
@@ -73,9 +105,9 @@ const DragAndDrop = () => {
   };
 
   return (
-    <div className="flex flex-col items-center p-6 bg-white shadow-lg rounded-lg h-full w-full mx-auto">
+    <div className="flex flex-col items-center justify-center p-6 bg-white shadow-lg rounded-lg h-full w-full mx-auto">
       <h2 className="text-lg font-semibold mb-2">Preview</h2>
-      {image &&!isCropped && (
+      {image && !isCropped && (                    
         <svg
           className="mb-2"
           width="20"
@@ -87,11 +119,11 @@ const DragAndDrop = () => {
           <path
             d="M12.26 2L12 32C12 33.0609 12.4214 34.0783 13.1716 34.8284C13.9217 35.5786 14.9391 36 16 36H46M2 12.26L32 12C33.0609 12 34.0783 12.4214 34.8284 13.1716C35.5786 13.9217 36 14.9391 36 16V46"
             stroke="#1E1E1E"
-            stroke-width="4"
+            strokeWidth="4"
             stroke-linecap="round"
             stroke-linejoin="round"
           />
-        </svg>
+        </svg>              
       )}
 
       {/* Drag & Drop Box */}
@@ -102,7 +134,7 @@ const DragAndDrop = () => {
           onDragOver={(e) => e.preventDefault()}
         >
           <div
-            className="flex items-center justify-center mt-10"
+            className="flex items-center justify-center mt-16"
             onDragOver={handleDragOver}
             onDrop={handleDrop}
             onClick={handleClick}

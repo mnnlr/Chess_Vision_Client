@@ -8,10 +8,12 @@ import UserProfile from './Pages/UserProfile';
 import { Signin } from './Pages/Signin';
 import { AboutUs } from './Pages/AboutUs';
 import DragAndDrop from './components/home/DragAndDrop';
+import { ToastContainer } from "react-toastify";
 
 function App() {
   return (
     <Router>
+       <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} />
       <Routes>
         <Route element={<NavFooter />}>
           <Route path="/" element={<Home />} />
