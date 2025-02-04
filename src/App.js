@@ -12,14 +12,13 @@ import { ToastContainer } from "react-toastify";
 
 function App() {
   return (
-    <Router>
-       <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} />
+    <Router>      
       <Routes>
         <Route element={<NavFooter />}>
           <Route path="/" element={<Home />} />
           <Route path="/chess" element={<ChessGame />} />
-          <Route path="/chess-game" element={<Chessq />} />
-          <Route path="/chess-analysis" element={<ChessAnalysis />} /> 
+          <Route path="/chess-game" element={<ChessGame />} />
+          {/* <Route path="/chess-analysis" element={<ChessAnalysis />} />  */}
           <Route path='/contact-us' element={<ContactUs/>}/>
           <Route path="/profile" element={<UserProfile />} />
           <Route path="/about-us" element={<AboutUs />} />

@@ -3,7 +3,6 @@ import Cropper from "react-easy-crop";
 import getCroppedImg from "../../utils/getCroppedImg";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import { toast } from "react-toastify";
 
 const DragAndDrop = () => {
   const [file, setFile] = useState(null);
@@ -62,7 +61,7 @@ const DragAndDrop = () => {
   //handel Upload
   const handleUpload = async () => {
     if (!croppedImage) {
-      toast.warning("Please drag the image again!");
+      alert("Please drag the image again!");
       return;
     }
     try {
@@ -85,7 +84,7 @@ const DragAndDrop = () => {
       setCroppedImage(
         `http:/localhost:5000/api/images/${response.data.filename}`
       );
-      toast.success("Image uploaded successfully!");
+      alert("Image uploaded successfully!");
       navigate("/chess");
     } catch (error) {
       console.error(
