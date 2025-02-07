@@ -7,22 +7,20 @@ import ContactUs from './Pages/ContactUs';
 import UserProfile from './Pages/UserProfile';
 import { Signin } from './Pages/Signin';
 import { AboutUs } from './Pages/AboutUs';
-import DragAndDrop from './components/home/DragAndDrop';
-import { ToastContainer } from "react-toastify";
-
+import Chessq from './Pages/Chessq';
+import ChessAnalysis from './Pages/ChesssAnalysis';
 function App() {
   return (
-    <Router>      
+    <Router>
       <Routes>
         <Route element={<NavFooter />}>
           <Route path="/" element={<Home />} />
           <Route path="/chess" element={<ChessGame />} />
-          <Route path="/chess-game" element={<ChessGame />} />
-          {/* <Route path="/chess-analysis" element={<ChessAnalysis />} />  */}
+          <Route path="/chess-game" element={<Chessq />} />
+          <Route path="/chess-analysis" element={<ChessAnalysis />} /> 
           <Route path='/contact-us' element={<ContactUs/>}/>
           <Route path="/profile" element={<UserProfile />} />
           <Route path="/about-us" element={<AboutUs />} />
-          <Route path='/drag&drop' element={<DragAndDrop/>}/>
           <Route path="/signin" element={<Signin />} />
         </Route>
       </Routes>
