@@ -9,17 +9,19 @@ import { Signin } from './Pages/Signin';
 import { AboutUs } from './Pages/AboutUs';
 import Chessq from './Pages/Chessq';
 import ChessAnalysis from './Pages/ChesssAnalysis';
+import DragAndDrop from './components/home/DragAndDrop';
 function App() {
   return (
     <Router>
       <Routes>
         <Route element={<NavFooter />}>
           <Route path="/" element={<Home />} />
-          <Route path="/chess" element={<ChessGame />} />
+          {/* <Route path="/chess" element={<ChessGame />} /> */}
           <Route path="/chess-game" element={<Chessq />} />
           <Route path="/chess-analysis" element={<ChessAnalysis />} /> 
           <Route path='/contact-us' element={<ContactUs/>}/>
-          <Route path="/profile" element={<UserProfile />} />
+          {/* <Route path="/profile" element={<UserProfile />} /> */}
+          <Route path="/drag&drop" element={<DragAndDrop />} />
           <Route path="/about-us" element={<AboutUs />} />
           <Route path="/signin" element={<Signin />} />
         </Route>

@@ -6,6 +6,7 @@ import { useNavigate } from "react-router-dom";
 
 const DragAndDrop = () => {
   const [file, setFile] = useState(null);
+  console.log(file);
   const fileInputRef = useRef(null);
   const [image, setImage] = useState(null);
   const [isImageDropped, setIsImageDropped] = useState(false); // Track if image is dropped
