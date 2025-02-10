@@ -1,10 +1,11 @@
-import React, { useState} from "react";
+import React, { useState } from "react";
 import { Chess } from "chess.js";
 import { Chessboard } from "react-chessboard";
 import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css"; // Import Toastify styles
+import "react-toastify/dist/ReactToastify.css";
 
-const ChessGame = () => {
+
+const ChessGame = ({ setMoves }) => { // Accept setMoves as prop
   const [game, setGame] = useState(new Chess());
   const [notification, setNotification] = useState("");
 
@@ -13,7 +14,6 @@ const ChessGame = () => {
     setGame(new Chess(game.fen())); // Update game state after mutation
   };
 
-  //  Check game status after every move
   const checkGameStatus = () => {
     if (game.isCheckmate()) {
       setNotification("Checkmate! Game over.");
@@ -22,40 +22,33 @@ const ChessGame = () => {
     } else if (game.isDraw()) {
       setNotification("Draw! The game is a draw.");
     } else {
-      setNotification(""); // Clear notification if no special condition
+      setNotification("");
     }
   };
 
-  //Computer's random move
-  const makeRandomMove = () => {
-    const possibleMoves = game.moves();
-    if (game.isGameOver() || game.isDraw() || possibleMoves.length === 0) return;
-
-    const randomIndex = Math.floor(Math.random() * possibleMoves.length);
-    safeGameMutate((game) => {
-      game.move(possibleMoves[randomIndex]);
-    });
-    checkGameStatus();
-  };
-
-  // Handle user move with try-catch for error handling
+  // Handle user move
   const handleMove = (sourceSquare, targetSquare) => {
     try {
+      let moveResult;
       safeGameMutate((game) => {
-        const move = game.move({
+        moveResult = game.move({
           from: sourceSquare,
           to: targetSquare,
-          promotion: "q", // Promote to queen if pawn reaches the last rank
+          promotion: "q",
         });
 
-        if (!move) {
+        if (!moveResult) {
           throw new Error("Invalid move");
         }
       });
 
+      if (moveResult) {
+        setMoves((prevMoves) => [...prevMoves, moveResult.san]); // Send move to Chessq.js
+      }
+
       checkGameStatus();
-      setTimeout(makeRandomMove, 500); // Delay computer's move
-      return true; // Move was successful
+      setTimeout(makeRandomMove, 500);
+      return true;
     } catch (error) {
       toast.error("❌ Invalid move!", {
         position: "top-center",
@@ -65,30 +58,36 @@ const ChessGame = () => {
         pauseOnHover: true,
         draggable: true,
       });
-      return false; // Move was invalid
+      return false;
     }
   };
 
+  // Computer's random move
+  const makeRandomMove = () => {
+    const possibleMoves = game.moves();
+    if (game.isGameOver() || game.isDraw() || possibleMoves.length === 0) return;
+
+    const randomIndex = Math.floor(Math.random() * possibleMoves.length);
+    let moveResult;
+    safeGameMutate((game) => {
+      moveResult = game.move(possibleMoves[randomIndex]);
+    });
+
+    if (moveResult) {
+      setMoves((prevMoves) => [...prevMoves, moveResult.san]); // Send move to Chessq.js
+    }
+
+    checkGameStatus();
+  };
 
   return (
-    
     <div>
-    <ToastContainer />
-    {notification && (
-          <div
-            style={{
-              padding: "10px",
-              backgroundColor: "red",
-              color: "white",
-              borderRadius: "5px",
-              textAlign: "center",
-            }}
-          >
-            {notification}
-          </div>
-        )}
-        <Chessboard position={game.fen()} onPieceDrop={handleMove} />
-        </div>
+      <ToastContainer />
+      {notification && (
+        <div className="notification-box">{notification}</div>
+      )}
+      <Chessboard position={game.fen()} onPieceDrop={handleMove} />
+    </div>
   );
 };
 
