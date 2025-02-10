@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import ChessGame from "./ChessGame"; // Import the ChessGame component
 import { FetchgamesByDate } from "../utils/FetchgamesByDate";
 import { AnalyseGame } from "../utils/AnalyseGames";
+import ChessGraph from "../components/ChessGraph";
+import MoveAnalysis from "../components/MoveAnalysis";
 const ChessAnalysis = () => {
   const [selectedOption, setSelectedOption] = useState(""); // Track selected option
   const [showPopup, setShowPopup] = useState(false); // Control modal visibility
@@ -90,11 +92,11 @@ const ChessAnalysis = () => {
 
 
         {/* Analysis Sidebar */}
-        <div className="analysis-sidebar bg-black text-white p-4 ml-0 md:ml-4 rounded-lg w-full md:w-1/3 max-w-2xl flex flex-col justify-between">
-          <div>
-            <button className="bg-green-500 text-white px-4 py-2 rounded-lg text-lg font-semibold w-full mb-3">
+        <div className="analysis-sidebar bg-black text-white p-4 ml-0 md:ml-4 rounded-lg w-full md:w-1/3 max-w-2xl flex flex-col justify-between overflow-auto ">
+          <div className="relative">
+            {/* <button className="bg-green-500 text-white px-4 py-2 rounded-lg text-lg font-semibold w-full mb-3">
               ♞ Game Report
-            </button>
+            </button> */}
             <div className="flex justify-center gap-0.5 items-center">
               <input
                 type="text"
@@ -137,10 +139,29 @@ const ChessAnalysis = () => {
             >
               🔍 Analyze
             </button>
+            </div>
+            <div className="overflow-y-auto max-h-60 scrollbar-none" style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}>
+            <div className="bg-gray-800 text-white px-4 py-2 rounded-lg text-lg font-semibold w-full mb-3 h-16 flex">
+                <h2 className="mr-1">Accuracies</h2>
+                <b className="bg-white text-black h-8 rounded-md border-2 border-green-500 w-20 mr-1 text-center">92.09&#37;</b>
+                <b className="bg-black h-8 rounded-md w-20 text-center border-2 border-green-500">76.98&#37;</b>               
+              </div>
+              <div className="flex justify-center items-center  bg-gray-800 mb-2 rounded-lg">
+                  <MoveAnalysis />
+              </div>
+              <div className="bg-gray-800 text-white px-4 py-2 rounded-lg text-lg font-semibold w-full mb-3 h-14 flex">
+                          <h3>Engine:</h3>     
+              </div>
+              {/* <div className="bg-gray-800 text-white px-4 py-2 rounded-lg text-lg font-semibold w-full mb-3 h-24 flex">
+              
+              </div> */}
+              <div>
+              <ChessGraph />
+                </div>
           </div>
           <div>
-            {/* Depth Control */}
-            <div className="bg-gray-800 p-3 rounded-lg mb-3">
+            {/* Depth Control */}           
+            <div className="bg-gray-800 p-3 rounded-lg mb-3">              
               <div className="flex justify-between items-center">
                 <span className="text-gray-400 font-bold">⚙ Depth</span>
                 <span className="text-gray-400">Arrow</span>
