@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import ChessGame from './ChessGame';
-import { FetchgamesByDate } from "../utils/FetchgamesByDate";
-import { AnalyseGame } from "../utils/AnalyseGames";
+
 
 const Chessq = () => {
   const [moves, setMoves] = useState([]);
