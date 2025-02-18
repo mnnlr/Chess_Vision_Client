@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import ChessGame from './ChessGame';
 import { FaStepForward , FaPlay, FaStepBackward} from "react-icons/fa";
 
+
 const Chessq = () => {
   const [moves, setMoves] = useState([]);
   const [delayedMoves, setDelayedMoves] = useState([]);
@@ -45,6 +46,16 @@ const Chessq = () => {
               </div>
             ))}
           </div>
+          <div className="flex flex-col gap-2 bg-gray-900 p-4 rounded-md text-lg font-medium">
+    <div className="flex justify-between">
+      <span className="text-gray-400">White:</span>
+      <span>{delayedMoves.length > 1 ? delayedMoves[delayedMoves.length - 2] : "-"}</span>
+    </div>
+    <div className="flex justify-between">
+      <span className="text-gray-400">Black:</span>
+      <span>{delayedMoves.length > 0 ? delayedMoves[delayedMoves.length - 1] : "-"}</span>
+    </div>
+  </div>
 
           {/* Playback Buttons Fixed at Bottom */}
           <div className="bg-gray-800 p-3 rounded-lg flex justify-between w-full ">

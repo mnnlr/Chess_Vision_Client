@@ -42,6 +42,7 @@ function Navbar() {
         </a>
         <nav className="md:ml-auto flex flex-wrap items-center text-base justify-center">
           <Link to='/' className="hover:cursor-pointer font-semibold mr-5 hover:text-gray-900">Home</Link>
+          <Link to='/chess-analysis' className="hover:cursor-pointer font-semibold mr-5 hover:text-gray-900">Chess Analysis</Link>
           {/* <Link to='/chess-game' className="hover:cursor-pointer font-semibold mr-5 hover:text-gray-900">Chess</Link> */}
           {/* <Link to='/profile' className="hover:cursor-pointer font-semibold mr-5 hover:text-gray-900">Profile</Link> */}
           {/* <Link to='/contactus' className="hover:cursor-pointer font-semibold mr-5 hover:text-gray-900">Contact</Link> */}
