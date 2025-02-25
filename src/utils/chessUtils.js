@@ -1,6 +1,6 @@
 import { Chess } from "chess.js";
 import { toast } from "react-toastify";
-import {displayMove} from "./displayMove"
+import {displayMove} from "./manualMove"
 
 
 // Handle player move

@@ -9,21 +9,23 @@ import { positions } from "../data/ChessData";
 import { nextMove, prevMove } from "../utils/moveNavigation";
 import { gameData } from "../data/gameData";
 import { Chessboard } from "react-chessboard";
-import { handleMove, makeHadalMove } from "../utils/chessUtils"; // Import move handlers
+import { handleMove } from "../utils/chessUtils"; // Import move handlers
 import ChessDataMoveList from "../utils/ChessDataMoveList";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { parsePGN } from "../utils/pgnUtils";
+import { parsePGNInput } from "../utils/pgnUtils";
 
-const ChessAnalysis = ({ setMoves = () => {} }) => {
+const ChessAnalysis = ({ setMoves = () => {} }, pgn) => {
   const [selectedOption, setSelectedOption] = useState(""); // Track selected option
   const [showPopup, setShowPopup] = useState(false); // Control modal visibility
   const [hidesubmitbtn, sethidesubmitbtn] = useState(false); // for show and hide button
-  const [GamesData, setGamesData] = useState([]); // for get game data
+  const [GamesData, setGamesData] = useState([{ moves: [] }]); // for get game data
   const [CurrentDate, setCurrentDate] = useState(new Date());
   const [UserOptionData, setUserOptionData] = useState("");
   const [Loading, setLoading] = useState(false);
   console.log(UserOptionData);
-  console.log(GamesData);
+  // console.log(GamesData);
   // show button if options are chess.com or Leechess
   useEffect(() => {
     if (selectedOption === "Chess" || selectedOption === "LeeChess.org") {
@@ -34,14 +36,19 @@ const ChessAnalysis = ({ setMoves = () => {} }) => {
     }
   }, [selectedOption]);
 
-  //Move Navigation Button
+  //Moves Navigation
   const [game, setGame] = useState(new Chess());
+  useEffect(() => {
+    if (game) {
+      checkGameStatus();
+    }
+  }, [game]);
   const [currentMoveIndex, setCurrentMoveIndex] = useState(0);
   const [isManualMove, setIsManualMove] = useState(false);
   const [notification, setNotification] = useState("");
   const [moveHistory, setMoveHistory] = useState([]);
-
-  const [,setManualMoves] = useState({});
+  const [selectedGame, setSelectedGame] = useState(null);
+  const [, setManualMoves] = useState({});
   const [visibleMoves] = useState();
 
   // Function to check game status
@@ -57,6 +64,41 @@ const ChessAnalysis = ({ setMoves = () => {} }) => {
       toast.info("Draw! The game is a draw.", { position: "top-center" });
     } else {
       setNotification("");
+    }
+  };
+
+  //Fist and Last move Navigation
+  const FirstMove = () => {
+    setCurrentMoveIndex(0);
+    updateBoardPosition(0);
+  };
+
+  const LastMove = () => {
+    if (!selectedGame || selectedGame.moves.length === 0) return;
+
+    const lastMove = selectedGame.moves[selectedGame.moves.length - 1];
+    const lastMoveIndex = lastMove.blackMove
+      ? selectedGame.moves.length * 2 - 1
+      : selectedGame.moves.length * 2 - 2;
+
+    setCurrentMoveIndex(lastMoveIndex);
+    updateBoardPosition(lastMoveIndex);
+  };
+
+  const updateBoardPosition = (index) => {
+    if (index < 0 || index >= selectedGame.moves.length * 2) return;
+
+    const moveIndex = Math.floor(index / 2);
+    const move = selectedGame.moves[moveIndex];
+
+    if (move) {
+      const fen = index % 2 === 0 ? move.whiteMove?.fen : move.blackMove?.fen;
+
+      if (fen) {
+        const newGame = new Chess();
+        newGame.load(fen);
+        setGame(newGame);
+      }
     }
   };
 
@@ -107,6 +149,171 @@ const ChessAnalysis = ({ setMoves = () => {} }) => {
     }
   }, [CurrentDate, showPopup]);
 
+  // fetch moves data from chess.com & LeeChess.com
+  const handleDataApi = (game) => {
+    console.log("Received game object:", game);
+    if (
+      !game ||
+      !game.pgn ||
+      typeof game.pgn !== "string" ||
+      !game.pgn.trim()
+    ) {
+      console.log("Error:Game data missing or no PGN", game);
+      return;
+    }
+    console.log("PGN is valid:", game.pgn);
+    const extractedMoves = parsePGN(game.pgn);
+    if (!extractedMoves || extractedMoves.length === 0) {
+      console.error("Error: Failed to extract move from PNG");
+
+      return;
+    }
+    const formattedMoves = extractedMoves.reduce((acc, move, index) => {
+      if (index % 2 === 0) {
+        acc.push({
+          moveNumber: move.moveNumber,
+          whiteMove: move.whiteMove,
+          blackMove: extractedMoves[index + 1]?.blackMove || null,
+        });
+      }
+      return acc;
+    }, []);
+
+    console.log("Formatted Moves:", formattedMoves);
+
+    setGamesData([
+      {
+        white: {
+          username:
+            game?.white?.username ||
+            game?.players?.white?.user?.name ||
+            "Unknown",
+          rating: game?.white?.rating || game?.players?.white?.rating || "N/A",
+        },
+        black: {
+          username:
+            game?.black?.username ||
+            game?.players?.black?.user?.name ||
+            "Unknown",
+          rating: game?.black?.rating || game?.players?.black?.rating || "N/A",
+        },
+        moves: formattedMoves,
+        timeControl: game.time_control || game.timeControl || "Unknow",
+        gameUrl: game.url || game.gameUrl || "N/A",
+        pgn: game.pgn,
+      },
+    ]);
+
+    setSelectedGame({
+      moves: formattedMoves,
+      gameUrl: game.gameUrl,
+      whiteUsername: game.white.username,
+      blackUsername: game.black.username,
+      timeControl: game.timeControl,
+      whiteRating: game?.white?.rating || game?.players?.white?.rating,
+      blackRating: game?.black?.rating || game?.players?.black?.rating,
+    });
+
+    setGamesData([
+      {
+        moves: formattedMoves,
+        gameUrl: game.gameUrl,
+        whiteUsername: game.white.username,
+        blackUsername: game.black.username,
+        whiteRating: game.white.rating || game.players.white.rating || "N/A",
+        blackRating: game.black.rating || game.players.black.rating || "N/A",
+      },
+    ]);
+    setShowPopup(false);
+    resetChessBoard();
+  };
+
+  //Fetch PGN via input
+  const handlePGNChange = (event) => {
+    const pgnData = event?.target?.value || UserOptionData; // Get PGN from input or state
+    if (!pgnData || typeof pgnData !== "string" || !pgnData.trim()) {
+      return;
+    }
+
+    // Extract metadata & clean PGN
+    const metadataRegex = /\[.*?\]/g;
+    const metadata = pgnData.match(metadataRegex);
+    let movesOnlyPGN = pgnData
+      .replace(metadataRegex, "")
+      .replace(/\s+/g, " ")
+      .trim();
+
+    if (!movesOnlyPGN) {
+      console.error("Error: No moves section found in PGN!");
+      return;
+    }
+    //Normalize castling notation (handles different hyphen styles)
+    movesOnlyPGN = movesOnlyPGN
+      .replace(/\b0[\-‐]0\b/g, "O-O")
+      .replace(/\b0[\-‐]0[\-‐]0\b/g, "O-O-O");
+
+    //Remove game result (1-0, 0-1, ½-½, etc.)
+    movesOnlyPGN = movesOnlyPGN.replace(/\b(1-0|0-1|½-½|\*)\b/g, "").trim();
+
+    if (
+      !movesOnlyPGN.match(/\b[a-h][1-8]\b/) &&
+      !movesOnlyPGN.match(/\b[NBRQK][a-h1-8]?\b/)
+    ) {
+      console.error("Error: PGN does not contain recognizable chess moves!");
+      return;
+    }
+    const game = {
+      pgn: movesOnlyPGN,
+      metadata: metadata || [],
+    };
+
+    console.log("Calling handlePGNInput with cleaned PGN:", game);
+
+    handlePGNInput(game);
+  };
+
+  const handlePGNInput = (game) => {
+    if (
+      !game ||
+      !game.pgn ||
+      typeof game.pgn !== "string" ||
+      !game.pgn.trim()
+    ) {
+      console.error("Error: Game data missing or not PGN paste!");
+      return;
+    }
+
+    const extractedMoves = parsePGNInput(game.pgn);
+    if (!extractedMoves || extractedMoves.length === 0) {
+      return;
+    }
+    setGamesData([
+      {
+        white: {
+          username: game?.white?.username || "Unknown",
+          rating: game?.white?.rating || "N/A",
+        },
+        black: {
+          username: game?.black?.username || "Unknown",
+          rating: game?.black?.rating || "N/A",
+        },
+        moves: extractedMoves,
+        timeControl: game.time_control || "Unknown",
+        gameUrl: game.url || "N/A",
+        pgn: game.pgn,
+      },
+    ]);
+
+    setSelectedGame({
+      moves: extractedMoves,
+      gameUrl: game.gameUrl || "N/A",
+      whiteUsername: game?.white?.username || "Unknown",
+      blackUsername: game?.black?.username || "Unknown",
+      timeControl: game?.timeControl || "Unknown",
+      whiteRating: game?.white?.rating || "N/A",
+      blackRating: game?.black?.rating || "N/A",
+    });
+  };
   // add one month in date
   const handleForwordMonth = () => {
     setCurrentDate((prev) => {
@@ -124,21 +331,41 @@ const ChessAnalysis = ({ setMoves = () => {} }) => {
       return newDate;
     });
   };
+  // Reset Chess Board Moves
+  const resetChessBoard = () => {
+    const newGame = new Chess();
+    setGame(newGame);
+    setMoves([]);
+    setManualMoves([]);
+    setCurrentMoveIndex(0);
+    setMoveHistory([]);
+    setIsManualMove(false);
+  };
 
   return (
     <div className="app-container bg-green-500 flex flex-col items-center justify-center container w-full mx-auto p-5">
-      <div className="bg-white p-4 rounded-lg shadow-lg flex flex-col md:flex-row relative w-full max-w-4xl">
+      <div className="bg-white p-3 rounded-lg shadow-lg flex flex-col md:flex-row relative w-full max-w-4xl">
         {/* Chess Board Section with Player Labels */}
         <div className="relative w-full md:w-2/3 mb-5 md:mb-0">
-          <div className="w-full bg-gray-800 text-white text-center py-2 rounded-t-lg">
-            Black Player
-          </div>
+          {selectedGame ? (
+            <div className="w-full bg-gray-800 text-white py-2 rounded-t-lg text-left">
+              <p className="ml-3">
+                {selectedGame.blackUsername} (
+                {selectedGame.blackRating || "N/A"}){" "}
+              </p>
+            </div>
+          ) : (
+            <div className="w-full bg-gray-800 text-white text-left py-2 rounded-t-lg">
+              <p className="ml-3">No game selected.</p>
+            </div>
+          )}
           <div className="chess-board-container p-3 bg-gray-100 rounded-lg">
             <ToastContainer />
             {notification && (
               <div className="notification-box">{notification}</div>
-            )}            
+            )}
             <Chessboard
+              // boardWidth={470}
               position={game.fen()}
               isManualMove={isManualMove}
               setIsManualMove={setIsManualMove}
@@ -158,9 +385,18 @@ const ChessAnalysis = ({ setMoves = () => {} }) => {
               }
             />
           </div>
-          <div className="w-full bg-gray-800 text-white text-center py-2 rounded-b-lg">
-            White Player
-          </div>
+          {selectedGame ? (
+            <div className="w-full bg-gray-800 text-white text-left py-2 rounded-b-lg">
+              <p className="ml-3">
+                {selectedGame.whiteUsername} (
+                {selectedGame.whiteRating || "N/A"})
+              </p>
+            </div>
+          ) : (
+            <div className="w-full bg-gray-800 text-white text-left py-2 rounded-b-lg">
+              <p className="ml-3">No game selected.</p>
+            </div>
+          )}
         </div>
 
         {/* Analysis Sidebar */}
@@ -183,7 +419,9 @@ const ChessAnalysis = ({ setMoves = () => {} }) => {
                 className="p-2 text-black w-full rounded mb-3"
                 value={UserOptionData}
                 onChange={(e) => {
-                  setUserOptionData(e.target.value);
+                  const newValue = e.target.value;
+                  setUserOptionData(newValue.trim());
+                  handlePGNChange();
                 }}
               />
               {hidesubmitbtn && (
@@ -199,10 +437,14 @@ const ChessAnalysis = ({ setMoves = () => {} }) => {
             </div>
             <select
               className="p-2 text-black w-full rounded mb-3"
-              onChange={(e) => setSelectedOption(e.target.value)}
+              onChange={(e) => {
+                const value = e.target.value;
+                setSelectedOption(value);
+                setUserOptionData("");
+              }}
             >
               <option value="">Select an option</option>
-              <option value="Pgn">Pgn</option>
+              <option value="pgn">Pgn</option>
               <option value="Chess">Chess.com</option>
               <option value="LeeChess.org">LeeChess.org</option>
               <option value="JSON">JSON</option>
@@ -211,7 +453,16 @@ const ChessAnalysis = ({ setMoves = () => {} }) => {
             {/* Unified Black Analysis Section */}
 
             <button
-              onClick={() => AnalyseGame()}
+              onClick={() => {
+                resetChessBoard();
+                if (selectedOption === "pgn") {
+                  // Call handlePGNChange to process the input first
+                  const pgnData = { target: { value: UserOptionData } };
+                  handlePGNChange(pgnData);
+                } else {
+                  AnalyseGame();
+                }
+              }}
               className="bg-green-500 text-white px-4 py-2 rounded-lg text-lg font-semibold w-full mb-3"
             >
               🔍 Analyze
@@ -236,33 +487,40 @@ const ChessAnalysis = ({ setMoves = () => {} }) => {
             <div className="mb-3">
               <ChessDataMoveList
                 currentMoveIndex={currentMoveIndex}
+                gameData={selectedGame || { moves: parsePGN(pgn) }}
                 visibleMoves={visibleMoves}
               />
             </div>
-            <div className="bg-gray-800 text-white px-4 py-2 rounded-lg text-lg font-semibold w-full mb-3 h-96">
-              {Array.from({ length: Math.ceil(moveHistory.length / 2) }).map(
-                (_, index) => (
-                  <div
-                    key={index}
-                    className="flex justify-between bg-gray-900 p-2 rounded-md"
-                  >
-                    <span className="text-gray-400">{index + 1}.</span>
-                    {/* White move */}
-                    <span className="text-white font-medium">
-                      {moveHistory[index * 2]?.white || "-"}
-                    </span>
-                    {/* Black move */}
-                    <span className="text-white font-medium">
-                      {moveHistory[index * 2 + 1]?.black || "-"}
-                    </span>
-                  </div>
+            <div className="bg-gray-800 text-white px-4 py-2 rounded-lg text-lg font-semibold w-full mb-3 h-auto overflow-auto">
+              {moveHistory.length > 0 ? (
+                Array.from({ length: Math.ceil(moveHistory.length / 2) }).map(
+                  (_, index) => (
+                    <div
+                      key={index}
+                      className="flex justify-between bg-gray-900 p-2 rounded-md"
+                    >
+                      <span className="text-gray-400">{index + 1}.</span>
+                      {/* White move */}
+                      <span className="text-white font-medium">
+                        {moveHistory[index * 2]?.white || "-"}
+                      </span>
+                      {/* Black move */}
+                      <span className="text-white font-medium">
+                        {moveHistory[index * 2 + 1]?.black || "-"}
+                      </span>
+                    </div>
+                  )
                 )
+              ) : (
+                <div className="text-center text-sm text-gray-400 py-2">
+                  No manual move available
+                </div>
               )}
             </div>
 
             <div className="bg-gray-800 text-white px-4 py-2 rounded-lg text-lg font-semibold w-full mb-3 h-14 flex">
               <h3>Engine:</h3>
-            </div>           
+            </div>
             <div>
               <ChessGraph positions={positions} />
             </div>
@@ -292,7 +550,10 @@ const ChessAnalysis = ({ setMoves = () => {} }) => {
                   />
                 </svg>
               </button>
-              <button className="bg-gray-700 p-1 rounded hover:bg-gray-600">
+              <button
+                onClick={() => FirstMove(setCurrentMoveIndex)}
+                className="bg-gray-700 p-1 rounded hover:bg-gray-600"
+              >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   width="24"
@@ -304,13 +565,14 @@ const ChessAnalysis = ({ setMoves = () => {} }) => {
               </button>
               <button
                 onClick={() =>
-                  prevMove(                    
+                  prevMove(
                     game,
                     setGame,
                     currentMoveIndex,
                     setCurrentMoveIndex,
                     isManualMove,
                     setIsManualMove,
+                    selectedGame,
                     checkGameStatus
                   )
                 }
@@ -329,17 +591,6 @@ const ChessAnalysis = ({ setMoves = () => {} }) => {
                   />
                 </svg>
               </button>
-
-              <button className="bg-gray-700 p-1 rounded hover:bg-gray-600">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                >
-                  <path fill="currentColor" d="m10 17l5-5l-5-5z" />
-                </svg>
-              </button>
               <button
                 onClick={() =>
                   nextMove(
@@ -349,11 +600,9 @@ const ChessAnalysis = ({ setMoves = () => {} }) => {
                     setCurrentMoveIndex,
                     isManualMove,
                     setIsManualMove,
+                    selectedGame,
                     checkGameStatus
                   )
-                }
-                disabled={
-                  isManualMove || currentMoveIndex >= gameData.moves.length * 2
                 }
                 className="bg-gray-700 p-1 rounded hover:bg-gray-600"
               >
@@ -369,7 +618,10 @@ const ChessAnalysis = ({ setMoves = () => {} }) => {
                   />
                 </svg>
               </button>
-              <button className="bg-gray-700 p-1 rounded hover:bg-gray-600">
+              <button
+                onClick={() => LastMove(setCurrentMoveIndex)}
+                className="bg-gray-700 p-1 rounded hover:bg-gray-600"
+              >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   width="24"
@@ -433,8 +685,10 @@ const ChessAnalysis = ({ setMoves = () => {} }) => {
                   GamesData.map((game, index) => (
                     <button
                       key={index}
+                      onClick={() => handleDataApi(game)}
                       className="p-2 bg-gray-700 rounded text-left flex items-center gap-8 px-6"
                     >
+                      Game {index + 1}
                       <span className="text-base font-bold">
                         {game?.time_class || game.speed}
                       </span>{" "}

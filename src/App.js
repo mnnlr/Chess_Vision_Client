@@ -10,6 +10,8 @@ import { AboutUs } from "./Pages/AboutUs";
 import Chessq from "./Pages/Chessq";
 import ChessAnalysis from "./Pages/ChesssAnalysis";
 import DragAndDrop from "./components/home/DragAndDrop";
+import { HTML5Backend } from "react-dnd-html5-backend";
+import { DndProvider } from "react-dnd";
 
 function App() {
   return (
@@ -24,7 +26,6 @@ function App() {
           {/* <Route path="/profile" element={<UserProfile />} /> */}
           <Route path="/drag&drop" element={<DragAndDrop />} />
           <Route path="/about-us" element={<AboutUs />} />
-          <Route path="/chess-analysis" element={<ChessAnalysis />} />
           {/* <Route path="/signin" element={<Signin />} /> */}
         </Route>
       </Routes>

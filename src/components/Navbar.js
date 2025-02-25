@@ -34,7 +34,7 @@ function Navbar() {
     //     <button className="sign-in-btn">Sign In</button>
     //   </nav>
     // </div>
-    <header className="fixed top-0 left-0 w-full z-50 text-gray-600 body-font bg-white">
+    <header className="  h-1 w-full z-50 text-gray-600 body-font bg-white">
       <div className="container mx-auto flex flex-wrap p-5 flex-col md:flex-row items-center">
         <a className="flex title-font font-medium items-center text-gray-900 mb-4 md:mb-0">
           {/* <img className='w-auto h-10 rounded-full' src="" alt="logo" /> */}
