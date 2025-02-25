@@ -104,13 +104,19 @@ const ChessAnalysis = ({ setMoves = () => {} }, pgn) => {
 
   // fetch users from server
   const GetGamesfromServer = async (DateForFetchGames) => {
+    if ((selectedOption === "Chess" || selectedOption === "LeeChess.org") && !UserOptionData.trim()) {
+      toast.error("Username is required for Chess.com & Lichess!", {
+        autoClose: 3000,
+      });
+      return; // Stop execution if username is missing
+    }
     await FetchgamesByDate({
       selectedOption,
       UserOptionData,
       DateForFetchGames,
       setGamesData,
       setLoading,
-    });
+    });    
   };
 
   // set date to fetch data from server
@@ -152,6 +158,9 @@ const ChessAnalysis = ({ setMoves = () => {} }, pgn) => {
   // fetch moves data from chess.com & LeeChess.com
   const handleDataApi = (game) => {
     console.log("Received game object:", game);
+    toast.success("Game data loaded successfully!", {
+      autoClose: 2000,
+    });
     if (
       !game ||
       !game.pgn ||
@@ -159,12 +168,14 @@ const ChessAnalysis = ({ setMoves = () => {} }, pgn) => {
       !game.pgn.trim()
     ) {
       console.log("Error:Game data missing or no PGN", game);
+      toast.error("PGN data is missing or invalid!", { autoClose: 3000 });
       return;
     }
     console.log("PGN is valid:", game.pgn);
     const extractedMoves = parsePGN(game.pgn);
     if (!extractedMoves || extractedMoves.length === 0) {
       console.error("Error: Failed to extract move from PNG");
+      toast.error("No valid moves found in PGN!", { autoClose: 3000 });
 
       return;
     }
@@ -231,9 +242,15 @@ const ChessAnalysis = ({ setMoves = () => {} }, pgn) => {
   //Fetch PGN via input
   const handlePGNChange = (event) => {
     const pgnData = event?.target?.value || UserOptionData; // Get PGN from input or state
+    if (selectedOption === "pgn") {
     if (!pgnData || typeof pgnData !== "string" || !pgnData.trim()) {
+      toast.error("Input field empty or PGN data not found!", {
+        position: "top-right",
+        autoClose: 3000,
+      });
       return;
     }
+  }
 
     // Extract metadata & clean PGN
     const metadataRegex = /\[.*?\]/g;
@@ -244,7 +261,7 @@ const ChessAnalysis = ({ setMoves = () => {} }, pgn) => {
       .trim();
 
     if (!movesOnlyPGN) {
-      console.error("Error: No moves section found in PGN!");
+      // toast.error("No valid moves found in PGN!");
       return;
     }
     //Normalize castling notation (handles different hyphen styles)
@@ -259,7 +276,12 @@ const ChessAnalysis = ({ setMoves = () => {} }, pgn) => {
       !movesOnlyPGN.match(/\b[a-h][1-8]\b/) &&
       !movesOnlyPGN.match(/\b[NBRQK][a-h1-8]?\b/)
     ) {
-      console.error("Error: PGN does not contain recognizable chess moves!");
+      console.error("Error: PGN does not contain recognizable chess moves!");      
+      toast.error("PGN does not contain recognizable chess moves!", {
+        position: "top-right",
+        autoClose: 3000,
+    });
+
       return;
     }
     const game = {
@@ -267,8 +289,11 @@ const ChessAnalysis = ({ setMoves = () => {} }, pgn) => {
       metadata: metadata || [],
     };
 
-    console.log("Calling handlePGNInput with cleaned PGN:", game);
 
+    toast.success("PGN successfully loaded!", {
+      position: "top-right",
+      autoClose: 3000,
+  });
     handlePGNInput(game);
   };
 
@@ -278,13 +303,16 @@ const ChessAnalysis = ({ setMoves = () => {} }, pgn) => {
       !game.pgn ||
       typeof game.pgn !== "string" ||
       !game.pgn.trim()
+      
     ) {
       console.error("Error: Game data missing or not PGN paste!");
+      toast.error("No valid moves found in PGN!");
+      
       return;
     }
 
     const extractedMoves = parsePGNInput(game.pgn);
-    if (!extractedMoves || extractedMoves.length === 0) {
+    if (!extractedMoves || extractedMoves.length === 0) {      
       return;
     }
     setGamesData([
@@ -341,6 +369,26 @@ const ChessAnalysis = ({ setMoves = () => {} }, pgn) => {
     setMoveHistory([]);
     setIsManualMove(false);
   };
+
+  const handleAnalyzeClick = () => {
+    resetChessBoard();
+      
+    if (selectedOption === "pgn") {
+      if (!UserOptionData || !UserOptionData.trim()) {
+        toast.error("Input field empty or PGN data not found!", {
+          position: "top-right",
+          autoClose: 3000,
+        });
+        return;
+      }
+      // Call handlePGNChange to process the input first
+      const pgnData = { target: { value: UserOptionData } };
+      handlePGNChange(pgnData);
+    } else {
+      AnalyseGame();
+    }
+  };
+  
 
   return (
     <div className="app-container bg-green-500 flex flex-col items-center justify-center container w-full mx-auto p-5">
@@ -420,8 +468,7 @@ const ChessAnalysis = ({ setMoves = () => {} }, pgn) => {
                 value={UserOptionData}
                 onChange={(e) => {
                   const newValue = e.target.value;
-                  setUserOptionData(newValue.trim());
-                  handlePGNChange();
+                  setUserOptionData(newValue.trim());                  
                 }}
               />
               {hidesubmitbtn && (
@@ -441,6 +488,11 @@ const ChessAnalysis = ({ setMoves = () => {} }, pgn) => {
                 const value = e.target.value;
                 setSelectedOption(value);
                 setUserOptionData("");
+                if (value === "Chess" || value === "LeeChess.org") {
+                  toast.info("Please enter a username to fetch games.", {
+                    autoClose: 3000,
+                  });
+                }
               }}
             >
               <option value="">Select an option</option>
@@ -453,16 +505,7 @@ const ChessAnalysis = ({ setMoves = () => {} }, pgn) => {
             {/* Unified Black Analysis Section */}
 
             <button
-              onClick={() => {
-                resetChessBoard();
-                if (selectedOption === "pgn") {
-                  // Call handlePGNChange to process the input first
-                  const pgnData = { target: { value: UserOptionData } };
-                  handlePGNChange(pgnData);
-                } else {
-                  AnalyseGame();
-                }
-              }}
+            onClick={handleAnalyzeClick}        
               className="bg-green-500 text-white px-4 py-2 rounded-lg text-lg font-semibold w-full mb-3"
             >
               🔍 Analyze
