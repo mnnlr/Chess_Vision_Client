@@ -6,11 +6,10 @@ import { useNavigate } from "react-router-dom";
 
 const DragAndDrop = () => {
   const [file, setFile] = useState(null);
-  console.log(file);
   const fileInputRef = useRef(null);
   const [image, setImage] = useState(null);
-  const [isImageDropped, setIsImageDropped] = useState(false); // Track if image is dropped
-  const [croppedImage, setCroppedImage] = useState(); // Cropped image
+  const [isImageDropped, setIsImageDropped] = useState(false);
+  const [croppedImage, setCroppedImage] = useState(null);
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
@@ -24,8 +23,9 @@ const DragAndDrop = () => {
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
     console.log("Selected file:", selectedFile);
+    setFile(selectedFile);
     setImage(URL.createObjectURL(selectedFile));
-    setIsImageDropped(true); // Hide drag-and-drop after file selection
+    setIsImageDropped(true);
   };
 
   const handleDrop = (e) => {
@@ -33,8 +33,13 @@ const DragAndDrop = () => {
     e.stopPropagation();
     const droppedFile = e.dataTransfer.files[0];
     console.log("Dropped file:", droppedFile);
-    setFile(droppedFile);
-    setImage(URL.createObjectURL(droppedFile));
+    if (droppedFile && droppedFile.type.startsWith("image/")) {
+      setFile(droppedFile);
+      setImage(URL.createObjectURL(droppedFile));
+      setIsImageDropped(true);
+    } else {
+      alert("Please drop an image file!");
+    }
   };
 
   const handleCrop = useCallback(async () => {
@@ -42,14 +47,12 @@ const DragAndDrop = () => {
       console.error("Image or croppedAreaPixels is missing.");
       return;
     }
-
     try {
       console.log("Cropping with:", croppedAreaPixels);
       const croppedImg = await getCroppedImg(image, croppedAreaPixels);
       console.log("Cropped Image Result:", croppedImg);
-
       if (croppedImg) {
-        setCroppedImage(croppedImg); // Set cropped image state
+        setCroppedImage(croppedImg);
         setIsCropped(true);
       } else {
         console.error("Cropped image is null");
@@ -59,39 +62,33 @@ const DragAndDrop = () => {
     }
   }, [image, croppedAreaPixels]);
 
-  //handel Upload
   const handleUpload = async () => {
     if (!croppedImage) {
-      alert("Please drag the image again!");
+      alert("Please crop the image first!");
       return;
     }
     try {
       const blob = await fetch(croppedImage).then((res) => res.blob());
       const file = new File([blob], "cropped-image.jpg", { type: "image/jpg" });
+      const formData = new FormData();
+      formData.append("croppedImage", file);
 
-      const fromData = new FormData();
-      fromData.append("croppedImage", file);
-
+      console.log("Uploading image to server...");
       const response = await axios.post(
-        "http://localhost:5000/api/images/upload",
-        fromData,
+        "http://localhost:3000/api/images/upload", // Updated port
+        formData,
         {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
+          headers: { "Content-Type": "multipart/form-data" },
         }
       );
-      console.log("Uploaded Image:", response.data);
-      setCroppedImage(
-        `http:/localhost:5000/api/images/${response.data.filename}`
-      );
-      alert("Image uploaded successfully!");
-      navigate("/chess");
+      console.log("Upload successful, response:", response.data);
+      navigate("/chess-game");
     } catch (error) {
-      console.error(
-        "Error uploading image",
-        error.response?.data || error.message
-      );
+      console.error("Error uploading image:", error.message);
+      if (error.response) {
+        console.error("Server response:", error.response.data);
+      }
+      alert("Upload failed. Check console for details.");
     }
   };
 
@@ -107,38 +104,32 @@ const DragAndDrop = () => {
   return (
     <div className="flex flex-col items-center justify-center p-6 bg-white shadow-lg rounded-lg h-full w-full mx-auto">
       <h2 className="text-lg font-semibold mb-2">Preview</h2>
-      {image && !isCropped && (                    
+      {image && !isCropped && (
         <svg
-          className="mb-2"
-          width="20"
-          height="20"
-          viewBox="0 0 48 48"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <path
-            d="M12.26 2L12 32C12 33.0609 12.4214 34.0783 13.1716 34.8284C13.9217 35.5786 14.9391 36 16 36H46M2 12.26L32 12C33.0609 12 34.0783 12.4214 34.8284 13.1716C35.5786 13.9217 36 14.9391 36 16V46"
-            stroke="#1E1E1E"
-            strokeWidth="4"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          />
-        </svg>              
-      )}
+        className="mb-2"
+        width="20"
+        height="20"
+        viewBox="0 0 48 48"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="M12.26 2L12 32C12 33.0609 12.4214 34.0783 13.1716 34.8284C13.9217 35.5786 14.9391 36 16 36H46M2 12.26L32 12C33.0609 12 34.0783 12.4214 34.8284 13.1716C35.5786 13.9217 36 14.9391 36 16V46"
+          stroke="#1E1E1E"
+          strokeWidth="4" 
+          strokeLinecap="round" 
+          strokeLinejoin="round" 
+        />
+      </svg>
+    )}
 
-      {/* Drag & Drop Box */}
       {!isImageDropped && (
         <div
           className="w-full sm:w-96 h-64 sm:h-80 border-2 border-gray-300 border-dashed rounded-lg p-6 text-center cursor-pointer"
           onDrop={handleDrop}
-          onDragOver={(e) => e.preventDefault()}
+          onDragOver={handleDragOver}
         >
-          <div
-            className="flex items-center justify-center mt-16"
-            onDragOver={handleDragOver}
-            onDrop={handleDrop}
-            onClick={handleClick}
-          >
+          <div className="flex items-center justify-center mt-16" onClick={handleClick}>
             <svg
               className="w-20 h-20 text-gray-500"
               viewBox="0 0 200 200"
@@ -152,15 +143,14 @@ const DragAndDrop = () => {
         </div>
       )}
 
-      {/* File Input */}
       <input
         ref={fileInputRef}
         type="file"
         onChange={handleFileChange}
         className="hidden"
+        accept="image/*"
       />
 
-      {/* Croping image */}
       {image && !isCropped && (
         <div className="relative w-full sm:w-1/2 h-96 flex flex-col items-center p-6 bg-white shadow-lg rounded-lg mx-auto">
           <Cropper
@@ -174,7 +164,7 @@ const DragAndDrop = () => {
           />
         </div>
       )}
-      {/* Cropped Image Preview */}
+
       {croppedImage && (
         <div className="w-full sm:w-96 h-auto flex flex-col items-center p-6 bg-white shadow-lg rounded-lg mx-auto">
           <p className="text-gray-600">Cropped Image:</p>
@@ -185,7 +175,7 @@ const DragAndDrop = () => {
           />
         </div>
       )}
-      {/* Upload & crop Button */}
+
       <div className="justify-items-center">
         {!isCropped && image && (
           <button
