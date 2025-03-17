@@ -4,14 +4,14 @@ import { Chessboard } from "react-chessboard";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
-
-const ChessGame = ({ setMoves }) => { // Accept setMoves as prop
+const ChessGame = ({ setMoves, setBoardState }) => { // Accept setBoardState as prop
   const [game, setGame] = useState(new Chess());
   const [notification, setNotification] = useState("");
 
   const safeGameMutate = (modify) => {
     modify(game);
     setGame(new Chess(game.fen())); // Update game state after mutation
+    setBoardState(game.board()); // Pass current board state to parent
   };
 
   const checkGameStatus = () => {
@@ -26,7 +26,6 @@ const ChessGame = ({ setMoves }) => { // Accept setMoves as prop
     }
   };
 
-  // Handle user move
   const handleMove = (sourceSquare, targetSquare) => {
     try {
       let moveResult;
@@ -43,11 +42,10 @@ const ChessGame = ({ setMoves }) => { // Accept setMoves as prop
       });
 
       if (moveResult) {
-        setMoves((prevMoves) => [...prevMoves, moveResult.san]); // Send move to Chessq.js
+        setMoves((prevMoves) => [...prevMoves, moveResult.san]);
       }
 
       checkGameStatus();
-      setTimeout(makeRandomMove, 500);
       return true;
     } catch (error) {
       toast.error("❌ Invalid move!", {
@@ -62,31 +60,13 @@ const ChessGame = ({ setMoves }) => { // Accept setMoves as prop
     }
   };
 
-  // Computer's random move
-  const makeRandomMove = () => {
-    const possibleMoves = game.moves();
-    if (game.isGameOver() || game.isDraw() || possibleMoves.length === 0) return;
-
-    const randomIndex = Math.floor(Math.random() * possibleMoves.length);
-    let moveResult;
-    safeGameMutate((game) => {
-      moveResult = game.move(possibleMoves[randomIndex]);
-    });
-
-    if (moveResult) {
-      setMoves((prevMoves) => [...prevMoves, moveResult.san]); // Send move to Chessq.js
-    }
-
-    checkGameStatus();
-  };
-
   return (
     <div>
       <ToastContainer />
-      {notification && (
-        <div className="notification-box">{notification}</div>
-      )}
-      <Chessboard position={game.fen()} onPieceDrop={handleMove} />
+      {notification && <div className="notification-box">{notification}</div>}
+      <div className="chess-container">
+        <Chessboard position={game.fen()} onPieceDrop={handleMove} />
+      </div>
     </div>
   );
 };
