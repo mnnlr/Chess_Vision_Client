@@ -15,6 +15,7 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { parsePGN } from "../utils/pgnUtils";
 import { parsePGNInput } from "../utils/pgnUtils";
+import "../css/loader.css"
 
 const ChessAnalysis = ({ setMoves = () => {} }, pgn) => {
   const [selectedOption, setSelectedOption] = useState(""); // Track selected option
@@ -25,6 +26,7 @@ const ChessAnalysis = ({ setMoves = () => {} }, pgn) => {
   const [UserOptionData, setUserOptionData] = useState("");
   const [Loading, setLoading] = useState(false);
   console.log(UserOptionData);
+  const [showGameInfo, setShowGameInfo] = useState(true);
   // console.log(GamesData);
   // show button if options are chess.com or Leechess
   useEffect(() => {
@@ -49,7 +51,7 @@ const ChessAnalysis = ({ setMoves = () => {} }, pgn) => {
   const [moveHistory, setMoveHistory] = useState([]);
   const [selectedGame, setSelectedGame] = useState(null);
   const [, setManualMoves] = useState({});
-  const [visibleMoves] = useState();
+  const [visibleMoves] = useState();  
 
   // Function to check game status
   const checkGameStatus = () => {
@@ -218,23 +220,25 @@ const ChessAnalysis = ({ setMoves = () => {} }, pgn) => {
     setSelectedGame({
       moves: formattedMoves,
       gameUrl: game.gameUrl,
-      whiteUsername: game.white.username,
-      blackUsername: game.black.username,
-      timeControl: game.timeControl,
-      whiteRating: game?.white?.rating || game?.players?.white?.rating,
-      blackRating: game?.black?.rating || game?.players?.black?.rating,
+      whiteUsername: game?.white?.username || game?.players?.white?.user?.name || "Unknown",
+      blackUsername: game?.black?.username || game?.players?.black?.user?.name || "Unknown",
+      timeControl: game?.timeControl || "Unknown",
+      whiteRating: game?.white?.rating || game?.players?.white?.rating || "N/A",
+      blackRating: game?.black?.rating || game?.players?.black?.rating || "N/A",
     });
 
     setGamesData([
       {
         moves: formattedMoves,
         gameUrl: game.gameUrl,
-        whiteUsername: game.white.username,
-        blackUsername: game.black.username,
-        whiteRating: game.white.rating || game.players.white.rating || "N/A",
-        blackRating: game.black.rating || game.players.black.rating || "N/A",
+        whiteUsername: game?.white?.username || game?.players?.white?.user?.name || "Unknown",
+        blackUsername: game?.black?.username || game?.players?.black?.user?.name || "Unknown",
+        timeControl: game?.timeControl || "Unknown",
+        whiteRating: game?.white?.rating || game?.players?.white?.rating || "N/A",
+        blackRating: game?.black?.rating || game.players?.black?.rating || "N/A",
       },
     ]);
+    setLoading(false);
     setShowPopup(false);
     resetChessBoard();
   };
@@ -371,7 +375,20 @@ const ChessAnalysis = ({ setMoves = () => {} }, pgn) => {
   };
 
   const handleAnalyzeClick = () => {
+    if(!selectedGame){
+      toast.error('No game selected!', {autoClose: 3000});      
+      return
+    }
+    setLoading(true);
     resetChessBoard();
+    setShowGameInfo(false);
+    setGamesData([selectedGame]);
+
+    if (selectedOption === "Chess" || selectedOption === "LeeChess.org") {
+      handleDataApi(selectedGame);
+      setLoading(false)
+      return;
+    }
       
     if (selectedOption === "pgn") {
       if (!UserOptionData || !UserOptionData.trim()) {
@@ -379,6 +396,7 @@ const ChessAnalysis = ({ setMoves = () => {} }, pgn) => {
           position: "top-right",
           autoClose: 3000,
         });
+        setLoading(false);
         return;
       }
       // Call handlePGNChange to process the input first
@@ -387,6 +405,7 @@ const ChessAnalysis = ({ setMoves = () => {} }, pgn) => {
     } else {
       AnalyseGame();
     }
+    setLoading(false);
   };
   
 
@@ -448,8 +467,8 @@ const ChessAnalysis = ({ setMoves = () => {} }, pgn) => {
         </div>
 
         {/* Analysis Sidebar */}
-        <div className="analysis-sidebar bg-black text-white p-4 ml-0 md:ml-4 rounded-lg w-full md:w-1/3 max-w-2xl flex flex-col justify-between overflow-auto ">
-          <div className="relative">
+        <div className="analysis-sidebar bg-black text-white p-4 ml-0 md:ml-4 rounded-lg w-full md:w-1/3 max-w-2xl flex flex-col justify-between overflow-auto">
+          <div className="relative order-last md:order-first sm:order-first">
             {/* <button className="bg-green-500 text-white px-4 py-2 rounded-lg text-lg font-semibold w-full mb-3">
               ♞ Game Report
             </button> */}
@@ -492,6 +511,7 @@ const ChessAnalysis = ({ setMoves = () => {} }, pgn) => {
                   toast.info("Please enter a username to fetch games.", {
                     autoClose: 3000,
                   });
+                  // handleAnalyzeClick();
                 }
               }}
             >
@@ -505,17 +525,40 @@ const ChessAnalysis = ({ setMoves = () => {} }, pgn) => {
             {/* Unified Black Analysis Section */}
 
             <button
-            onClick={handleAnalyzeClick}        
+            onClick={handleAnalyzeClick} disabled={Loading}                    
               className="bg-green-500 text-white px-4 py-2 rounded-lg text-lg font-semibold w-full mb-3"
             >
-              🔍 Analyze
+              {Loading ? <span className="loader"></span> : " 🔍 Analyze"}
+              
             </button>
           </div>
+          {showGameInfo && (
+          <div className="bg-gray-800 text-white px-4 py-2 rounded-lg text-lg font-semibold w-full mb-3 h-auto flex">
+          <div className="text-sm">
+              {selectedGame ? (
+                <>
+                  <p><strong>Time Control: </strong> {selectedGame.time_control}</p>
+                  <p><strong>Game Type: </strong> {selectedGame.time_class}</p>
+                  <p><strong>Rated: </strong> {selectedGame.rated ? "Yes" : "No"}</p>
+                  <p><strong>Start Time: </strong> {new Date(selectedGame.end_time * 1000).toLocaleString()}</p>
+
+                  <h4>Players:</h4>
+                  <p><strong>White: </strong> {selectedGame?.white?.username ||selectedGame?.players?.white?.user?.name || "Unknown" } ({selectedGame?.white?.rating || selectedGame?.players?.white?.rating || "N/A"})</p>
+                  <p><strong>Black: </strong> {selectedGame?.black?.username ||selectedGame?.players?.black?.user?.name || "Unknown" } ({selectedGame?.black?.rating || selectedGame?.players?.black?.rating || "N/A"})</p>
+                </>
+              ) : (
+                <div className=" text-red-500 p-5 rounded-lg text-lg w-full mb-3 flex text-center ml-5">No game selected!</div>
+              )}
+            </div>
+
+            </div>
+            )}
+            {!showGameInfo &&(
           <div
-            className="overflow-y-auto max-h-60 scrollbar-none"
-            style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
-          >
-            <div className="bg-gray-800 text-white px-4 py-2 rounded-lg text-lg font-semibold w-full mb-3 h-16 flex">
+            className="overflow-y-auto max-h-60 scrollbar-none order-2 md:order-none sm:order-none"
+            style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}>
+
+            <div className="bg-gray-800 text-white px-4 py-2 rounded-lg text-lg font-semibold w-full mb-3 h-16 flex ">
               <h2 className="mr-1">Accuracies</h2>
               <b className="bg-white text-black h-8 rounded-md border-2 border-green-500 w-20 mr-1 text-center">
                 92.09&#37;
@@ -568,6 +611,7 @@ const ChessAnalysis = ({ setMoves = () => {} }, pgn) => {
               <ChessGraph positions={positions} />
             </div>
           </div>
+          )}
           <div>
             {/* Depth Control */}
             <div className="bg-gray-800 p-3 rounded-lg mb-3">
@@ -579,8 +623,9 @@ const ChessAnalysis = ({ setMoves = () => {} }, pgn) => {
             </div>
 
             {/* Playback Controls */}
-            <div className="bg-gray-800 p-3 rounded-lg flex justify-between">
-              <button className="bg-gray-700 p-1 rounded hover:bg-gray-600">
+            <div className="bg-gray-800 p-3 rounded-lg flex justify-between md:flex-row gap-2 mb-3 items-center w-full order-first md:order-last sm:-order-last">  
+              <button className="bg-gray-700 p-1 rounded hover:bg-gray-600 md:w-auto
+              ">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   width="24"
@@ -728,7 +773,10 @@ const ChessAnalysis = ({ setMoves = () => {} }, pgn) => {
                   GamesData.map((game, index) => (
                     <button
                       key={index}
-                      onClick={() => handleDataApi(game)}
+                      onClick={() => {
+                        setSelectedGame(game)
+                        setShowPopup(false);
+                      }}
                       className="p-2 bg-gray-700 rounded text-left flex items-center gap-8 px-6"
                     >
                       Game {index + 1}

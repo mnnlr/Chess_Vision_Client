@@ -6,7 +6,7 @@ const ChessDataMoveList = ({ currentMoveIndex, gameData }) => {
   const activeMoveRef = useRef(null);
   console.log("ChessDataMoveList received:", gameData);
 
-  if (!gameData || !gameData.moves || gameData.moves.length === 0) {
+  if (!gameData || !Array.isArray(gameData.moves) || gameData.moves.length === 0) {
     return (
       <div className="p-4 bg-gray-800 rounded text-white">
         No moves available.
